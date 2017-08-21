@@ -1640,10 +1640,11 @@ function print_matrix(io::IO, X::AbstractVecOrMat,
 end
 
 """
-    summary(x)
+    summary(io::IO, x)
+    str = summary(x)
 
-Return a string giving a brief description of a value. By default returns
-`string(typeof(x))`, e.g. [`Int64`](@ref).
+Print to a stream `io`, or return a string `str`, giving a brief description of
+a value. By default returns `string(typeof(x))`, e.g. [`Int64`](@ref).
 
 For arrays, returns a string of size and type info,
 e.g. `10-element Array{Int64,1}`.
@@ -1656,8 +1657,14 @@ julia> summary(zeros(2))
 "2-element Array{Float64,1}"
 ```
 """
-summary(x) = string(typeof(x)) # e.g. Int64
+summary(io::IO, x) = print(io, typeof(x))
+function summary(x)
+    io = IOBuffer()
+    summary(io, x)
+    String(take!(io))
+end
 
+## `summary` for AbstractArrays
 # sizes such as 0-dimensional, 4-dimensional, 2x3
 dims2string(d::Dims) = isempty(d) ? "0-dimensional" :
                        length(d) == 1 ? "$(d[1])-element" :
@@ -1666,9 +1673,79 @@ dims2string(d::Dims) = isempty(d) ? "0-dimensional" :
 inds2string(inds::Indices) = join(map(string,inds), '×')
 
 # anything array-like gets summarized e.g. 10-element Array{Int64,1}
-summary(a::AbstractArray) = _summary(a, indices(a))
-_summary(a, inds::Tuple{Vararg{OneTo}}) = string(dims2string(length.(inds)), " ", typeof(a))
-_summary(a, inds) = string(typeof(a), " with indices ", inds2string(inds))
+summary(io::IO, a::AbstractArray) = summary(io, a, indices(a))
+function summary(io::IO, a, inds::Tuple{Vararg{OneTo}})
+    print(io, dims2string(length.(inds)), " ")
+    showarg(IOContext(io, :toplevel=>true), a)
+end
+function summary(io::IO, a, inds)
+    showarg(IOContext(io, :toplevel=>true), a)
+    print(io, " with indices ", inds2string(inds))
+end
+
+"""
+    showarg(io::IO, x)
+
+Show `x` as if it were an argument to a function. This function is
+used in the printing of "type summaries" in terms of sequences of
+function calls on objects.
+
+The fallback definition is to print `x` as `::\$(typeof(x))`,
+representing argument `x` in terms of its type. However, you can
+specialize this function for specific types to customize printing.
+
+# Example
+
+A SubArray created as `view(a, :, 3, 2:5)`, where `a` is a
+3-dimensional Float64 array, has type
+
+    SubArray{Float64,2,Array{Float64,3},Tuple{Colon,Int64,UnitRange{Int64}},false}
+
+The default `show` printing would display this full type.
+However, the summary for SubArrays actually prints as
+
+    view(::Array{Float64,3}, Colon(), 3, 2:5)
+
+because of a definition such as
+
+    function Base.showarg(io::IO, v::SubArray)
+        print(io, "view(")
+        showarg(IOContext(io, :toplevel=>false), parent(v))
+        print(io, ", ", join(v.indexes, ", "))
+        print(io, ')')
+    end
+
+Note that we're calling `showarg` recursively for the parent array
+type, indicating that any recursed calls are not at the top level.
+Printing the parent as `::Array{Float64,3}` is the fallback (non-toplevel)
+behavior, because no specialized method for `Array` has been defined.
+"""
+showarg(io::IO, ::Type{T}) where {T} = print(io, "::Type{", T, "}")
+function showarg(io::IO, x)
+    if !get(io, :toplevel, false)
+        print(io, "::")
+    end
+    print(io, typeof(x))
+end
+
+function showarg(io::IO, v::SubArray)
+    print(io, "view(")
+    showarg(IOContext(io, :toplevel=>false), parent(v))
+    showindices(io, v.indexes...)
+    print(io, ')')
+end
+showindices(io, ::Slice, inds...) =
+    (print(io, ", :"); showindices(io, inds...))
+showindices(io, ind1, inds...) =
+    (print(io, ", ", ind1); showindices(io, inds...))
+showindices(io) = nothing
+
+function showarg(io::IO, r::ReshapedArray)
+    print(io, "reshape(")
+    showarg(IOContext(io, :toplevel=>false), parent(r))
+    print(io, ", ", join(r.dims, ", "))
+    print(io, ')')
+end
 
 # n-dimensional arrays
 function show_nd(io::IO, a::AbstractArray, print_matrix, label_slices)

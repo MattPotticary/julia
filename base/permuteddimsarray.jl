@@ -186,4 +186,10 @@ end
     P
 end
 
+function Base.showarg(io::IO, A::PermutedDimsArray{T,N,perm}) where {T,N,perm}
+    print(io, "PermutedDimsArray(")
+    showarg(IOContext(io, :toplevel=>false), parent(A))
+    print(io, ", ", perm, ')')
+end
+
 end
