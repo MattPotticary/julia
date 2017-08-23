@@ -1705,8 +1705,13 @@ export hex2num
 @deprecate convert(::Type{S}, g::UTF8proc.GraphemeIterator) where {S<:AbstractString}  convert(S, g.s)
 
 # Issue #19923
-@deprecate circshift rotate
-@deprecate circshift! rotate!
+@deprecate circshift            rotate
+@deprecate circshift!           rotate!
+@deprecate ror                  rotate
+@deprecate ror!                 rotate!
+@deprecate rol(B, i)            rotate(B, -i)
+@deprecate rol!(dest, src, i)   rotate!(dest, src, -i)
+@deprecate rol!(B, i)           rotate!(B, -i)
 
 # issue #5148, PR #23259
 # warning for `const` on locals should be changed to an error in julia-syntax.scm

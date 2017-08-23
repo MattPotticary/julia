@@ -204,6 +204,30 @@ julia> rotate(b, (-1,0))
  3  7  11  15
  4  8  12  16
  1  5   9  13
+
+julia> a = BitArray([true, true, false, false, true])
+5-element BitArray{1}:
+  true
+  true
+ false
+ false
+  true
+
+julia> rotate(a, 1)
+5-element BitArray{1}:
+  true
+  true
+  true
+ false
+ false
+
+julia> rotate(a, -1)
+5-element BitArray{1}:
+  true
+ false
+ false
+  true
+  true
 ```
 
 See also [`rotate!`](@ref).
