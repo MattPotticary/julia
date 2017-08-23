@@ -204,7 +204,7 @@ prod2(itr) = invoke(prod, Tuple{Any}, itr)
 @test maximum(collect(Int16(1):Int16(100))) === Int16(100)
 @test maximum(Int32[1,2]) === Int32(2)
 
-A = circshift(reshape(1:24,2,3,4), (0,1,1))
+A = rotate(reshape(1:24,2,3,4), (0,1,1))
 @test extrema(A,1) == reshape([(23,24),(19,20),(21,22),(5,6),(1,2),(3,4),(11,12),(7,8),(9,10),(17,18),(13,14),(15,16)],1,3,4)
 @test extrema(A,2) == reshape([(19,23),(20,24),(1,5),(2,6),(7,11),(8,12),(13,17),(14,18)],2,1,4)
 @test extrema(A,3) == reshape([(5,23),(6,24),(1,19),(2,20),(3,21),(4,22)],2,3,1)

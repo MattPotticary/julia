@@ -388,7 +388,7 @@ v = OffsetArray(rand(8), (-2,))
 @test A+A == OffsetArray(parent(A)+parent(A), A.offsets)
 @test A.*A == OffsetArray(parent(A).*parent(A), A.offsets)
 
-@test circshift(A, (-1,2)) == OffsetArray(circshift(parent(A), (-1,2)), A.offsets)
+@test rotate(A, (-1,2)) == OffsetArray(rotate(parent(A), (-1,2)), A.offsets)
 
 src = reshape(collect(1:16), (4,4))
 dest = OffsetArray(Array{Int}(4,4), (-1,1))

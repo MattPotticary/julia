@@ -9,7 +9,7 @@
 #               Iain Haslam, March 2006.
 #
 # Julia version: devectorized and threaded. The in-place
-# circshift implementation is needed because of issue #10317.
+# rotate implementation is needed because of issue #10317.
 # Despite that, GC time is ~22% of runtime. relax! and
 # calc_equi! are broken out because of issue #10718. The
 # threaded call form is used and the for loop form is is
@@ -172,7 +172,7 @@ function lbm3d(n)
         tic()
         # Propagate -- nearest and next-nearest neighbors
         for i = 2:19
-            circshift3d1!(F, i, prop_shifts[i-1])
+            rotate3d1!(F, i, prop_shifts[i-1])
         end
         tprop = tprop + toq()
 

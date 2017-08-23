@@ -1,6 +1,6 @@
 # This file is a part of Julia. License is MIT: https://julialang.org/license
 
-# An in-place version of circshift. Needs generalization -- currently
+# An in-place version of rotate. Needs generalization -- currently
 # works only on a 3D hyperplane of a 4D array and supports only unit
 # shifts. Code needs refactoring to reduce duplication.
 
@@ -8,7 +8,7 @@ using Match
 
 # a is the 4D array; index specifies which 3D hyperplane; vec
 # specifies the shifts (only 1 and -1)
-function circshift3d1!(a,index,vec)
+function rotate3d1!(a,index,vec)
     nx = size(a,1)
     ny = size(a,2)
     nz = size(a,3)

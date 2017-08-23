@@ -941,26 +941,27 @@ in the range of `Rdest`. The sizes of the two regions must match.
 """
 copy!(::AbstractArray, ::CartesianRange, ::AbstractArray, ::CartesianRange)
 
-# circshift!
-circshift!(dest::AbstractArray, src, ::Tuple{}) = copy!(dest, src)
+# rotate!
+rotate!(dest::AbstractArray, src, ::Tuple{}) = copy!(dest, src)
 """
-    circshift!(dest, src, shifts)
+    rotate!(dest, src, shifts)
 
-Circularly shift the data in `src`, storing the result in
-`dest`. `shifts` specifies the amount to shift in each dimension.
+Rotate the data in `src`, storing the result in `dest`. `shifts` specifies the amount to
+shift in each dimension. Positive shifts corresond to movement to the right, negative to
+the left, and 0 implies no movement.
 
 The `dest` array must be distinct from the `src` array (they cannot
 alias each other).
 
-See also [`circshift`](@ref).
+See also [`rotate`](@ref).
 """
-@noinline function circshift!(dest::AbstractArray{T,N}, src, shiftamt::DimsInteger) where {T,N}
+@noinline function rotate!(dest::AbstractArray{T,N}, src, shiftamt::DimsInteger) where {T,N}
     dest === src && throw(ArgumentError("dest and src must be separate arrays"))
     inds = indices(src)
     indices(dest) == inds || throw(ArgumentError("indices of src and dest must match (got $inds and $(indices(dest)))"))
-    _circshift!(dest, (), src, (), inds, fill_to_length(shiftamt, 0, Val(N)))
+    _rotate!(dest, (), src, (), inds, fill_to_length(shiftamt, 0, Val(N)))
 end
-circshift!(dest::AbstractArray, src, shiftamt) = circshift!(dest, src, (shiftamt...,))
+rotate!(dest::AbstractArray, src, shiftamt) = rotate!(dest, src, (shiftamt...,))
 
 # For each dimension, we copy the first half of src to the second half
 # of dest, and the second half of src to the first half of dest. This
@@ -971,14 +972,14 @@ circshift!(dest::AbstractArray, src, shiftamt) = circshift!(dest, src, (shiftamt
 # time; when all the dimensions have been filled in, you call `copy!`
 # for that block. In other words, in two dimensions schematically we
 # have the following call sequence (--> means a call):
-#   circshift!(dest, src, shiftamt) -->
-#     _circshift!(dest, src, ("first half of dim1",)) -->
-#       _circshift!(dest, src, ("first half of dim1", "first half of dim2")) --> copy!
-#       _circshift!(dest, src, ("first half of dim1", "second half of dim2")) --> copy!
-#     _circshift!(dest, src, ("second half of dim1",)) -->
-#       _circshift!(dest, src, ("second half of dim1", "first half of dim2")) --> copy!
-#       _circshift!(dest, src, ("second half of dim1", "second half of dim2")) --> copy!
-@inline function _circshift!(dest, rdest, src, rsrc,
+#   rotate!(dest, src, shiftamt) -->
+#     _rotate!(dest, src, ("first half of dim1",)) -->
+#       _rotate!(dest, src, ("first half of dim1", "first half of dim2")) --> copy!
+#       _rotate!(dest, src, ("first half of dim1", "second half of dim2")) --> copy!
+#     _rotate!(dest, src, ("second half of dim1",)) -->
+#       _rotate!(dest, src, ("second half of dim1", "first half of dim2")) --> copy!
+#       _rotate!(dest, src, ("second half of dim1", "second half of dim2")) --> copy!
+@inline function _rotate!(dest, rdest, src, rsrc,
                              inds::Tuple{AbstractUnitRange,Vararg{Any}},
                              shiftamt::Tuple{Integer,Vararg{Any}})
     ind1, d = inds[1], shiftamt[1]
@@ -987,11 +988,11 @@ circshift!(dest::AbstractArray, src, shiftamt) = circshift!(dest, src, (shiftamt
     r1, r2 = first(ind1):sf-1, sf:last(ind1)
     r3, r4 = first(ind1):sl, sl+1:last(ind1)
     tinds, tshiftamt = tail(inds), tail(shiftamt)
-    _circshift!(dest, (rdest..., r1), src, (rsrc..., r4), tinds, tshiftamt)
-    _circshift!(dest, (rdest..., r2), src, (rsrc..., r3), tinds, tshiftamt)
+    _rotate!(dest, (rdest..., r1), src, (rsrc..., r4), tinds, tshiftamt)
+    _rotate!(dest, (rdest..., r2), src, (rsrc..., r3), tinds, tshiftamt)
 end
 # At least one of inds, shiftamt is empty
-function _circshift!(dest, rdest, src, rsrc, inds, shiftamt)
+function _rotate!(dest, rdest, src, rsrc, inds, shiftamt)
     copy!(dest, CartesianRange(rdest), src, CartesianRange(rsrc))
 end
 
@@ -1038,7 +1039,7 @@ function circcopy!(dest, src)
     _circcopy!(dest, (), indsdest, src, (), indssrc)
 end
 
-# This uses the same strategy described above for _circshift!
+# This uses the same strategy described above for _rotate!
 @inline function _circcopy!(dest, rdest, indsdest::Tuple{AbstractUnitRange,Vararg{Any}},
                             src,  rsrc,  indssrc::Tuple{AbstractUnitRange,Vararg{Any}})
     indd1, inds1 = indsdest[1], indssrc[1]

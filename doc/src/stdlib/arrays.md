@@ -104,8 +104,8 @@ Base.vcat
 Base.hcat
 Base.hvcat
 Base.flipdim
-Base.circshift
-Base.circshift!
+Base.rotate
+Base.rotate!
 Base.circcopy!
 Base.contains(::Function, ::Any, ::Any)
 Base.find(::Any)

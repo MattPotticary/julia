@@ -171,15 +171,16 @@ function flipdim(A::AbstractArray, d::Integer)
     return B
 end
 
-function circshift(a::AbstractArray, shiftamt::Real)
-    circshift!(similar(a), a, (Integer(shiftamt),))
+function rotate(a::AbstractArray, shiftamt::Real)
+    rotate!(similar(a), a, (Integer(shiftamt),))
 end
-circshift(a::AbstractArray, shiftamt::DimsInteger) = circshift!(similar(a), a, shiftamt)
+rotate(a::AbstractArray, shiftamt::DimsInteger) = rotate!(similar(a), a, shiftamt)
 """
-    circshift(A, shifts)
+    rotate(A, shifts)
 
-Circularly shift the data in an array. The second argument is a vector giving the amount to
-shift in each dimension.
+Rotate the data in an array. The second argument is a vector, tuple, or scalar specifying
+the amount to shift in each dimension. Positive shifts correspond to rotation to the right
+and negative shifts to the left. A shift of 0 implies no movement.
 
 # Examples
 ```jldoctest
@@ -190,14 +191,14 @@ julia> b = reshape(collect(1:16), (4,4))
  3  7  11  15
  4  8  12  16
 
-julia> circshift(b, (0,2))
+julia> rotate(b, (0,2))
 4×4 Array{Int64,2}:
   9  13  1  5
  10  14  2  6
  11  15  3  7
  12  16  4  8
 
-julia> circshift(b, (-1,0))
+julia> rotate(b, (-1,0))
 4×4 Array{Int64,2}:
  2  6  10  14
  3  7  11  15
@@ -205,10 +206,10 @@ julia> circshift(b, (-1,0))
  1  5   9  13
 ```
 
-See also [`circshift!`](@ref).
+See also [`rotate!`](@ref).
 """
-function circshift(a::AbstractArray, shiftamt)
-    circshift!(similar(a), a, map(Integer, (shiftamt...,)))
+function rotate(a::AbstractArray, shiftamt)
+    rotate!(similar(a), a, map(Integer, (shiftamt...,)))
 end
 
 # Uses K-B-N summation

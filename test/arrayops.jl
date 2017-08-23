@@ -568,13 +568,13 @@ end
     end
 end
 
-@testset "circshift" begin
-    @test circshift(1:5, -1) == circshift(1:5, 4) == circshift(1:5, -6) == [2,3,4,5,1]
-    @test circshift(1:5, 1) == circshift(1:5, -4) == circshift(1:5, 6)  == [5,1,2,3,4]
+@testset "rotate" begin
+    @test rotate(1:5, -1) == rotate(1:5, 4) == rotate(1:5, -6) == [2,3,4,5,1]
+    @test rotate(1:5, 1) == rotate(1:5, -4) == rotate(1:5, 6)  == [5,1,2,3,4]
     a = [1:5;]
-    @test_throws ArgumentError Base.circshift!(a, a, 1)
+    @test_throws ArgumentError Base.rotate!(a, a, 1)
     b = copy(a)
-    @test Base.circshift!(b, a, 1) == [5,1,2,3,4]
+    @test Base.rotate!(b, a, 1) == [5,1,2,3,4]
 end
 
 # unique across dim
